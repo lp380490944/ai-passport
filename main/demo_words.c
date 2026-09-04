@@ -1,28 +1,34 @@
-// main/demo_words.c —— 像素小熊背单词:分组翻卡复习,NVS 记忆进度。
+// main/demo_words.c —— 像素小熊听音选图:发音 + 三选一 + 积分,NVS 记进度。
 //
-// 交互:
-//   上/下 短按   上一词 / 下一词(组末下翻弹出"小组完成")
-//   确定  短按   翻出 / 收起中文释义
+// 交互(三张图卡自上而下对应三个物理键):
+//   上键  短按   选第一张图
+//   下键  短按   选第二张图
+//   确定  短按   选第三张图
+//   上键  长按   再听一遍发音
 //   确定  长按   返回菜单(main.c 统一拦截)
 //
-// 词库在 assets/words/words.tsv,每 10 词一组;编辑后跑
-// tools/words_pack.py 重新生成词表与中文字体。
+// 答对 +1 分并自动下一题;答错提示"再试一次"并重放发音。
+// 词库在 assets/words/words.tsv,发音/配图/字体由 tools/words_pack.py 生成。
 #include "demo.h"
 #include "demo_radio.h"   // 复用 NVS 初始化
 #include "words_data.h"
 #include "ui_pixel.h"
+#include "bsp_audio.h"
 #include "bsp_battery.h"
 #include "lvgl.h"
 #include "nvs_flash.h"
 #include "nvs.h"
 #include "esp_log.h"
+#include "esp_random.h"
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
 
 LV_FONT_DECLARE(font_cjk16);
 
 static const char *TAG = "words";
 
-#define WORDS_NVS_NS  "words"
-#define WORDS_NVS_KEY "cursor"
+#define WORDS_NVS_NS "words"
+#define OPTION_COUNT 3
 
 // 小熊配色
 #define BEAR_FUR   0x9C6B3F
@@ -30,94 +36,125 @@ static const char *TAG = "words";
 #define BEAR_CREAM 0xE8CFA8
 
 // ---- 状态 ----
-static int  s_cur;               // 当前词索引
-static bool s_show_gloss;        // 释义是否翻开
-static bool s_done_overlay;      // "小组完成"覆盖层是否在显示
-static bool s_dirty;             // 游标有未落盘修改
+static int  s_cur;                    // 当前题目的词索引
+static int  s_score;                  // 积分
+static int  s_correct_slot;           // 正确答案在哪张卡(0..2)
+static int  s_options[OPTION_COUNT];  // 三张卡对应的词索引
+static bool s_lock;                   // 答对后的过场期间忽略按键
+static bool s_dirty;                  // 进度/积分有未落盘修改
 
 // ---- UI 对象 ----
 static lv_obj_t   *s_scr, *s_bear, *s_batt;
-static lv_obj_t   *s_group_label, *s_total_label;
-static lv_obj_t   *s_img, *s_word, *s_gloss;
-static lv_obj_t   *s_dots[WORDS_GROUP_SIZE];
-static lv_obj_t   *s_done_wrap, *s_done_title, *s_done_sub;
-static lv_timer_t *s_timer;
+static lv_obj_t   *s_score_label, *s_total_label, *s_word, *s_feedback;
+static lv_obj_t   *s_cards[OPTION_COUNT], *s_imgs[OPTION_COUNT];
+static lv_timer_t *s_tick_timer, *s_round_timer;
+
+// ---- 发音:独立任务解码 u-law 并写 codec(按键回调与 LVGL 不做慢活) ----
+static TaskHandle_t s_audio_task;
+static volatile int s_play_req;       // 词索引+1;0=空闲
+
+static int16_t ulaw_decode(uint8_t u)
+{
+    u = (uint8_t)~u;
+    int t = (((u & 0x0F) << 3) + 0x84) << ((u & 0x70) >> 4);
+    return (u & 0x80) ? (int16_t)(0x84 - t) : (int16_t)(t - 0x84);
+}
+
+static void play_word(int idx)
+{
+    if (bsp_audio_set_format(WORDS_AUDIO_RATE, 16, 1) != ESP_OK) {
+        ESP_LOGW(TAG, "音频格式设置失败,跳过发音");
+        return;
+    }
+    bsp_audio_set_volume(85);
+
+    static int16_t chunk[512];
+    uint32_t pos = WORDS_AUDIO_OFS[idx];
+    uint32_t end = WORDS_AUDIO_OFS[idx + 1];
+    while (pos < end) {
+        int n = 0;
+        while (n < 512 && pos < end) chunk[n++] = ulaw_decode(WORDS_AUDIO[pos++]);
+        bsp_audio_write(chunk, (size_t)n * sizeof(int16_t));
+    }
+}
+
+static void audio_task(void *arg)
+{
+    (void)arg;
+    for (;;) {
+        int req = s_play_req;
+        if (req > 0) { s_play_req = 0; play_word(req - 1); }
+        else vTaskDelay(pdMS_TO_TICKS(30));
+    }
+}
+
+static void request_play(int idx) { s_play_req = idx + 1; }
 
 // ---- 持久化 ----
 
-static void cursor_save(void)
+static void progress_save(void)
 {
     nvs_handle_t h;
     if (nvs_open(WORDS_NVS_NS, NVS_READWRITE, &h) != ESP_OK) {
         ESP_LOGW(TAG, "NVS 打开失败,进度未保存");
         return;
     }
-    esp_err_t err = nvs_set_u16(h, WORDS_NVS_KEY, (uint16_t)s_cur);
+    esp_err_t err = nvs_set_u16(h, "cursor", (uint16_t)s_cur);
+    if (err == ESP_OK) err = nvs_set_u16(h, "score", (uint16_t)s_score);
     if (err == ESP_OK) err = nvs_commit(h);
     nvs_close(h);
     if (err == ESP_OK) s_dirty = false;
     else ESP_LOGW(TAG, "NVS 写入失败: %s", esp_err_to_name(err));
 }
 
-static void cursor_load(void)
+static void progress_load(void)
 {
     s_cur = 0;
+    s_score = 0;
     if (demo_radio_nvs_prepare() != ESP_OK) return;
     nvs_handle_t h;
     if (nvs_open(WORDS_NVS_NS, NVS_READONLY, &h) != ESP_OK) return;
     uint16_t v = 0;
-    if (nvs_get_u16(h, WORDS_NVS_KEY, &v) == ESP_OK && v < WORDS_COUNT) {
-        s_cur = v;
-    }
+    if (nvs_get_u16(h, "cursor", &v) == ESP_OK && v < WORDS_COUNT) s_cur = v;
+    if (nvs_get_u16(h, "score", &v) == ESP_OK) s_score = v;
     nvs_close(h);
 }
 
-// ---- 渲染 ----
+// ---- 出题与渲染 ----
 
-static void refresh(void)
+static void set_card_normal(int slot)
 {
-    int group = s_cur / WORDS_GROUP_SIZE;
-    int pos   = s_cur % WORDS_GROUP_SIZE;
-    int total_groups = (WORDS_COUNT + WORDS_GROUP_SIZE - 1) / WORDS_GROUP_SIZE;
+    lv_obj_set_style_bg_color(s_cards[slot], lv_color_hex(UI_PAPER), 0);
+    lv_obj_set_style_border_color(s_cards[slot], lv_color_hex(UI_INK), 0);
+}
 
-    lv_label_set_text_fmt(s_group_label, "第%d组/%d", group + 1, total_groups);
-    lv_label_set_text_fmt(s_total_label, "%d/%d", s_cur + 1, WORDS_COUNT);
+static void round_start(void)
+{
+    // 两个不重复的干扰项
+    int d1, d2;
+    do { d1 = (int)(esp_random() % WORDS_COUNT); } while (d1 == s_cur);
+    do { d2 = (int)(esp_random() % WORDS_COUNT); } while (d2 == s_cur || d2 == d1);
 
-    lv_image_set_src(s_img, WORDS[s_cur].img);
+    s_correct_slot = (int)(esp_random() % OPTION_COUNT);
+    int rest[2] = { d1, d2 }, r = 0;
+    for (int i = 0; i < OPTION_COUNT; i++) {
+        s_options[i] = (i == s_correct_slot) ? s_cur : rest[r++];
+    }
+
     lv_label_set_text(s_word, WORDS[s_cur].word);
-    if (s_show_gloss) {
-        lv_label_set_text(s_gloss, WORDS[s_cur].gloss);
-        lv_obj_set_style_text_color(s_gloss, lv_color_hex(UI_INK), 0);
-    } else {
-        lv_label_set_text(s_gloss, "按 OK 看释义");
-        lv_obj_set_style_text_color(s_gloss, lv_color_hex(0x9AA6B0), 0);
+    lv_label_set_text(s_feedback, "听一听 选一选");
+    lv_obj_set_style_text_color(s_feedback, lv_color_hex(UI_INK), 0);
+    lv_label_set_text_fmt(s_score_label, "分 %d", s_score);
+    lv_label_set_text_fmt(s_total_label, "%d/%d", s_cur + 1, WORDS_COUNT);
+    for (int i = 0; i < OPTION_COUNT; i++) {
+        lv_image_set_src(s_imgs[i], WORDS[s_options[i]].img);
+        set_card_normal(i);
     }
-
-    // 组内进度点:走过=草绿,当前=黄,未到=白
-    int group_len = WORDS_COUNT - group * WORDS_GROUP_SIZE;
-    if (group_len > WORDS_GROUP_SIZE) group_len = WORDS_GROUP_SIZE;
-    for (int i = 0; i < WORDS_GROUP_SIZE; i++) {
-        if (i >= group_len) { lv_obj_add_flag(s_dots[i], LV_OBJ_FLAG_HIDDEN); continue; }
-        lv_obj_remove_flag(s_dots[i], LV_OBJ_FLAG_HIDDEN);
-        uint32_t c = (i < pos) ? UI_GRASS : (i == pos) ? UI_YELLOW : 0xFFFFFF;
-        lv_obj_set_style_bg_color(s_dots[i], lv_color_hex(c), 0);
-    }
-
-    if (s_done_overlay) lv_obj_remove_flag(s_done_wrap, LV_OBJ_FLAG_HIDDEN);
-    else                lv_obj_add_flag(s_done_wrap, LV_OBJ_FLAG_HIDDEN);
+    s_lock = false;
+    request_play(s_cur);
 }
 
-static void show_done(bool all_done)
-{
-    s_done_overlay = true;
-    lv_label_set_text(s_done_title, all_done ? "全部完成!" : "小组完成!");
-    lv_label_set_text(s_done_sub, all_done ? "再来一遍" : "按任意键继续");
-    ui_pixel_mascot_jump(s_bear);
-    refresh();
-}
-
-// lv_timer 跑在 LVGL 任务里:刷新电量,并把脏游标批量落盘
-// (避免在按键回调所在的 button 任务里做 flash 写入)。
+// lv_timer 跑在 LVGL 任务里:刷新电量,并把脏进度批量落盘。
 static void tick(lv_timer_t *t)
 {
     (void)t;
@@ -127,7 +164,25 @@ static void tick(lv_timer_t *t)
     lv_obj_set_style_text_color(s_batt,
         (soc >= 0 && soc < 20) ? lv_color_hex(UI_RED) : lv_color_hex(0xFFFFFF), 0);
 
-    if (s_dirty) cursor_save();
+    if (s_dirty) progress_save();
+}
+
+static void next_round_cb(lv_timer_t *t)
+{
+    (void)t;
+    lv_timer_delete(s_round_timer);
+    s_round_timer = NULL;
+    s_cur = (s_cur + 1) % WORDS_COUNT;
+    s_dirty = true;
+    round_start();
+}
+
+static void unflash_cb(lv_timer_t *t)
+{
+    int slot = (int)(intptr_t)lv_timer_get_user_data(t);
+    lv_timer_delete(s_round_timer);
+    s_round_timer = NULL;
+    set_card_normal(slot);
 }
 
 // ---- 像素小熊 ----
@@ -166,7 +221,7 @@ static void bear_eye(lv_obj_t *bear, int x, int y)
     lv_anim_start(&anim);
 }
 
-// 原创"像素小熊":圆耳、奶油口鼻、鼓肚皮,眨眼 + 切词时跳一下。
+// 原创"像素小熊":圆耳、奶油口鼻、鼓肚皮,眨眼 + 答对时跳一下。
 static lv_obj_t *bear_create(lv_obj_t *parent, int x, int y)
 {
     lv_obj_t *m = lv_obj_create(parent);
@@ -197,9 +252,7 @@ static lv_obj_t *bear_create(lv_obj_t *parent, int x, int y)
 
 void demo_words_enter(void)
 {
-    cursor_load();
-    s_show_gloss = false;
-    s_done_overlay = false;
+    progress_load();
 
     s_scr = ui_pixel_screen_create("WORDS");
 
@@ -207,114 +260,93 @@ void demo_words_enter(void)
     s_batt = ui_pixel_label(s_scr, "", &lv_font_montserrat_14, 0xFFFFFF);
     lv_obj_align(s_batt, LV_ALIGN_TOP_RIGHT, -8, 28);
 
-    // 进度面板:左"第N组/共几组",右"当前/总词数"
-    lv_obj_t *stat = ui_pixel_panel_create(s_scr, 11, 50, 218, 30, UI_YELLOW);
+    // 记分板:左积分,右总进度
+    lv_obj_t *stat = ui_pixel_panel_create(s_scr, 11, 50, 218, 28, UI_YELLOW);
     lv_obj_set_style_pad_all(stat, 0, 0);
-    s_group_label = ui_pixel_label(stat, "", &font_cjk16, UI_INK);
-    lv_obj_align(s_group_label, LV_ALIGN_LEFT_MID, 10, 0);
+    s_score_label = ui_pixel_label(stat, "", &font_cjk16, UI_INK);
+    lv_obj_align(s_score_label, LV_ALIGN_LEFT_MID, 10, 0);
     s_total_label = ui_pixel_label(stat, "", &lv_font_montserrat_14, UI_INK);
     lv_obj_align(s_total_label, LV_ALIGN_RIGHT_MID, -10, 0);
 
-    // 单词卡:大图在上给小朋友认,英文在中,中文默认藏着
-    lv_obj_t *card = ui_pixel_panel_create(s_scr, 18, 86, 204, 142, UI_PAPER);
-    lv_obj_set_style_pad_all(card, 0, 0);
-    s_img = lv_image_create(card);
-    lv_obj_align(s_img, LV_ALIGN_TOP_MID, 0, 8);
-    s_word = ui_pixel_label(card, "", &lv_font_montserrat_20, UI_INK);
-    lv_obj_align(s_word, LV_ALIGN_TOP_MID, 0, 86);
-    s_gloss = ui_pixel_label(card, "", &font_cjk16, UI_INK);
-    lv_obj_set_style_text_align(s_gloss, LV_TEXT_ALIGN_CENTER, 0);
-    lv_obj_align(s_gloss, LV_ALIGN_TOP_MID, 0, 114);
+    // 题目单词
+    s_word = ui_pixel_label(s_scr, "", &lv_font_montserrat_20, 0xFFFFFF);
+    lv_obj_align(s_word, LV_ALIGN_TOP_MID, 0, 82);
 
-    // 组内 10 词进度点
-    for (int i = 0; i < WORDS_GROUP_SIZE; i++) {
-        lv_obj_t *dot = lv_obj_create(s_scr);
-        lv_obj_remove_flag(dot, LV_OBJ_FLAG_SCROLLABLE);
-        lv_obj_set_pos(dot, 42 + i * 16, 234);
-        lv_obj_set_size(dot, 12, 8);
-        lv_obj_set_style_radius(dot, 0, 0);
-        lv_obj_set_style_pad_all(dot, 0, 0);
-        lv_obj_set_style_border_color(dot, lv_color_hex(UI_INK), 0);
-        lv_obj_set_style_border_width(dot, 2, 0);
-        s_dots[i] = dot;
+    // 三张选项图卡,自上而下对应 上/下/确定 键
+    static const char *KEY_HINTS[OPTION_COUNT] = { LV_SYMBOL_UP, LV_SYMBOL_DOWN, "OK" };
+    for (int i = 0; i < OPTION_COUNT; i++) {
+        s_cards[i] = ui_pixel_panel_create(s_scr, 12, 108 + i * 60, 190, 54, UI_PAPER);
+        lv_obj_set_style_pad_all(s_cards[i], 0, 0);
+        lv_obj_t *hint = ui_pixel_label(s_cards[i], KEY_HINTS[i],
+                                        &lv_font_montserrat_14, 0x9AA6B0);
+        lv_obj_align(hint, LV_ALIGN_LEFT_MID, 8, 0);
+        s_imgs[i] = lv_image_create(s_cards[i]);
+        lv_image_set_scale(s_imgs[i], 160);            // 72px 图缩到 ~45px
+        lv_obj_align(s_imgs[i], LV_ALIGN_CENTER, 8, 0);
     }
 
-    // 草地提示 + 小熊
-    lv_obj_t *hint = ui_pixel_label(s_scr,
-        "上下切词  OK 看释义", &font_cjk16, UI_INK);
-    lv_obj_align(hint, LV_ALIGN_BOTTOM_MID, 0, -7);
-    s_bear = bear_create(s_scr, 100, 250);
+    // 小熊站在右下角草地上
+    s_bear = bear_create(s_scr, 196, 240);
 
-    // "小组完成"覆盖层(默认隐藏)
-    // 面板阴影是画在父对象上的独立块,必须连阴影一起包进透明容器,
-    // 隐藏容器才能把阴影一并藏掉(否则屏幕中间会留一块黑)。
-    s_done_wrap = lv_obj_create(s_scr);
-    lv_obj_remove_flag(s_done_wrap, LV_OBJ_FLAG_SCROLLABLE);
-    lv_obj_set_pos(s_done_wrap, 35, 116);
-    lv_obj_set_size(s_done_wrap, 176, 91);
-    lv_obj_set_style_bg_opa(s_done_wrap, LV_OPA_TRANSP, 0);
-    lv_obj_set_style_border_width(s_done_wrap, 0, 0);
-    lv_obj_set_style_pad_all(s_done_wrap, 0, 0);
-    lv_obj_t *done_panel = ui_pixel_panel_create(s_done_wrap, 0, 0, 170, 84, UI_ORANGE);
-    lv_obj_set_style_pad_all(done_panel, 0, 0);
-    s_done_title = ui_pixel_label(done_panel, "", &font_cjk16, UI_INK);
-    lv_obj_align(s_done_title, LV_ALIGN_TOP_MID, 0, 16);
-    s_done_sub = ui_pixel_label(done_panel, "", &font_cjk16, UI_INK);
-    lv_obj_align(s_done_sub, LV_ALIGN_TOP_MID, 0, 44);
-    lv_obj_add_flag(s_done_wrap, LV_OBJ_FLAG_HIDDEN);
+    // 草地上的反馈行
+    s_feedback = ui_pixel_label(s_scr, "", &font_cjk16, UI_INK);
+    lv_obj_align(s_feedback, LV_ALIGN_BOTTOM_MID, -20, -8);
 
-    refresh();
+    round_start();
     tick(NULL);                                    // 立即显示电量,不等 1 秒
-    s_timer = lv_timer_create(tick, 1000, NULL);
+    s_tick_timer = lv_timer_create(tick, 1000, NULL);
+    if (!s_audio_task) {
+        xTaskCreate(audio_task, "words_audio", 4096, NULL, 4, &s_audio_task);
+    }
     lv_screen_load(s_scr);
 }
 
 void demo_words_exit(void)
 {
-    if (s_timer) { lv_timer_delete(s_timer); s_timer = NULL; }
-    // 退出前把游标落盘。u16 提交只有毫秒级,可接受。
-    if (s_dirty) cursor_save();
+    s_play_req = 0;
+    if (s_audio_task) { vTaskDelete(s_audio_task); s_audio_task = NULL; }
+    if (s_tick_timer)  { lv_timer_delete(s_tick_timer);  s_tick_timer = NULL; }
+    if (s_round_timer) { lv_timer_delete(s_round_timer); s_round_timer = NULL; }
+    // 退出前把积分与进度落盘。两个 u16 提交只有毫秒级,可接受。
+    if (s_dirty) progress_save();
     if (s_scr) {
         lv_obj_delete(s_scr);
         s_scr = s_bear = s_batt = NULL;
-        s_group_label = s_total_label = s_img = s_word = s_gloss = NULL;
-        s_done_wrap = s_done_title = s_done_sub = NULL;
-        for (int i = 0; i < WORDS_GROUP_SIZE; i++) s_dots[i] = NULL;
+        s_score_label = s_total_label = s_word = s_feedback = NULL;
+        for (int i = 0; i < OPTION_COUNT; i++) s_cards[i] = s_imgs[i] = NULL;
     }
 }
 
 // ---- 按键 ----
 
-static void goto_word(int idx)
-{
-    s_cur = idx;
-    s_show_gloss = false;
-    s_dirty = true;
-    ui_pixel_mascot_jump(s_bear);
-    refresh();
-}
-
 void demo_words_key(bsp_btn_t btn, bsp_btn_ev_t ev)
 {
-    if (ev != BSP_BTN_CLICK) return;
-
-    if (s_done_overlay) {                    // 任意键关闭覆盖层,进入下一组
-        s_done_overlay = false;
-        goto_word((s_cur + 1) % WORDS_COUNT);
+    if (ev == BSP_BTN_LONG && btn == BSP_BTN_UP) {   // 再听一遍
+        request_play(s_cur);
         return;
     }
+    if (ev != BSP_BTN_CLICK || s_lock || s_round_timer) return;
 
-    if (btn == BSP_BTN_UP) {
-        goto_word((s_cur + WORDS_COUNT - 1) % WORDS_COUNT);
-    } else if (btn == BSP_BTN_DOWN) {
-        if ((s_cur + 1) % WORDS_GROUP_SIZE == 0 || s_cur + 1 == WORDS_COUNT) {
-            show_done(s_cur + 1 == WORDS_COUNT);  // 组末/词库末弹庆祝,下一键翻组
-        } else {
-            goto_word(s_cur + 1);
-        }
-    } else if (btn == BSP_BTN_OK) {
-        s_show_gloss = !s_show_gloss;
-        if (s_show_gloss) ui_pixel_mascot_jump(s_bear);
-        refresh();
+    int slot = (int)btn;                             // UP/DOWN/OK 恰为 0/1/2
+    if (slot < 0 || slot >= OPTION_COUNT) return;
+
+    if (slot == s_correct_slot) {                    // 答对:加分,过场后下一题
+        s_score++;
+        s_dirty = true;
+        lv_obj_set_style_bg_color(s_cards[slot], lv_color_hex(UI_GRASS), 0);
+        lv_obj_set_style_border_color(s_cards[slot], lv_color_hex(0xFFFFFF), 0);
+        lv_label_set_text_fmt(s_feedback, "%s 答对啦 +1", WORDS[s_cur].gloss);
+        lv_obj_set_style_text_color(s_feedback, lv_color_hex(0x1F5E10), 0);
+        lv_label_set_text_fmt(s_score_label, "分 %d", s_score);
+        ui_pixel_mascot_jump(s_bear);
+        s_lock = true;
+        s_round_timer = lv_timer_create(next_round_cb, 1200, NULL);
+    } else {                                         // 答错:红一下,重放发音
+        lv_obj_set_style_bg_color(s_cards[slot], lv_color_hex(0xF2A9A0), 0);
+        lv_obj_set_style_border_color(s_cards[slot], lv_color_hex(UI_RED), 0);
+        lv_label_set_text(s_feedback, "再试一次");
+        lv_obj_set_style_text_color(s_feedback, lv_color_hex(0x8F1F14), 0);
+        request_play(s_cur);
+        s_round_timer = lv_timer_create(unflash_cb, 700, (void *)(intptr_t)slot);
     }
 }

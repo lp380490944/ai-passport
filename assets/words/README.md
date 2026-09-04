@@ -23,8 +23,13 @@ After editing any of the above, run:
 ```bash
 python3 tools/words_pack.py                   # regenerate main/words_data.c/.h
 python3 tools/words_pack.py --images          # also fetch pictures, emit main/words_images.c
+python3 tools/words_pack.py --audio           # also synthesize speech, emit main/words_audio.c
 python3 tools/words_pack.py --font <cjk.otf>  # also regenerate main/font_cjk16.c
 ```
+
+`--audio` is macOS-only: it synthesizes each word with the system `say`
+command (Samantha voice), converts to 8 kHz 16-bit mono via `afconvert`, and
+compresses to G.711 u-law for the firmware.
 
 `--images` needs a Python environment with `pypng` and `lz4` plus `pngquant`
 (macOS: `brew install pngquant`); it converts through `tools/LVGLImage.py`

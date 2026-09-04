@@ -22,8 +22,12 @@
 ```bash
 python3 tools/words_pack.py                   # 重新生成 main/words_data.c/.h
 python3 tools/words_pack.py --images          # 同时下载配图并生成 main/words_images.c
+python3 tools/words_pack.py --audio           # 同时合成发音并生成 main/words_audio.c
 python3 tools/words_pack.py --font <cjk.otf>  # 同时重新生成 main/font_cjk16.c
 ```
+
+`--audio` 仅限 macOS:用系统 `say`(Samantha 声音)逐词合成,`afconvert` 转
+8 kHz 16 bit 单声道,再按 G.711 u-law 压缩打进固件。
 
 `--images` 需要装了 `pypng`、`lz4` 的 Python 环境和 `pngquant`
 (macOS: `brew install pngquant`),内部调用 `tools/LVGLImage.py`(取自 LVGL

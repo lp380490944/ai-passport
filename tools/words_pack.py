@@ -98,6 +98,11 @@ def emit_c(entries):
             "extern const word_entry_t WORDS[];",
             "extern const int WORDS_COUNT;",
             "",
+            "// 发音:G.711 u-law 单声道,WORDS_AUDIO_OFS[i]..[i+1] 是第 i 词的字节区间",
+            "extern const uint32_t WORDS_AUDIO_RATE;",
+            "extern const uint32_t WORDS_AUDIO_OFS[];",
+            "extern const uint8_t  WORDS_AUDIO[];",
+            "",
         ]),
         encoding="utf-8",
     )
@@ -141,11 +146,11 @@ def emit_images(entries):
     with tempfile.TemporaryDirectory() as tmp:
         for i, png in enumerate(paths):
             sym = img_symbol(i)
-            # RGB565 是本机屏幕原生格式,渲染路径最稳;透明背景直接合成到
-            # 卡片纸色(UI_PAPER)上,避免依赖索引色 alpha 混合。
+            # I8 索引色省 40% 空间(给发音留余量);透明背景直接合成到
+            # 卡片纸色(UI_PAPER)上,不依赖 alpha 混合。
             subprocess.run(
-                [sys.executable, str(IMG_TOOL), "--ofmt", "C", "--cf", "RGB565",
-                 "--rgb565dither", "--background", "0xF4F4EA",
+                [sys.executable, str(IMG_TOOL), "--ofmt", "C", "--cf", "I8",
+                 "--background", "0xF4F4EA",
                  "--compress", "NONE", "--name", sym, "-o", tmp, str(png)],
                 check=True, capture_output=True)
             text = (pathlib.Path(tmp) / f"{sym}.c").read_text(encoding="utf-8")
@@ -155,6 +160,74 @@ def emit_images(entries):
     OUT_IMG.write_text("\n".join(chunks), encoding="utf-8")
     size = OUT_IMG.stat().st_size
     print(f"配图: {len(paths)} 张 -> {OUT_IMG.relative_to(ROOT)} ({size // 1024} KB 源码)")
+
+
+OUT_AUDIO = ROOT / "main" / "words_audio.c"
+AUDIO_RATE = 8000
+AUDIO_VOICE = "Samantha"
+
+
+def _ulaw_byte(sample: int) -> int:
+    # G.711 μ-law 编码,单样本
+    BIAS, CLIP = 0x84, 32635
+    sign = 0x80 if sample < 0 else 0
+    if sample < 0:
+        sample = -sample
+    if sample > CLIP:
+        sample = CLIP
+    sample += BIAS
+    exp, mask = 7, 0x4000
+    while exp > 0 and not sample & mask:
+        exp -= 1
+        mask >>= 1
+    mantissa = (sample >> (exp + 3)) & 0x0F
+    return ~(sign | (exp << 4) | mantissa) & 0xFF
+
+
+def _tts_ulaw(word: str, tmp: pathlib.Path) -> bytes:
+    import wave
+    aiff = tmp / "w.aiff"
+    wav = tmp / "w.wav"
+    subprocess.run(["say", "-v", AUDIO_VOICE, "-o", str(aiff), word], check=True)
+    subprocess.run(["afconvert", str(aiff), "-f", "WAVE",
+                    "-d", f"LEI16@{AUDIO_RATE}", "-c", "1", str(wav)], check=True)
+    with wave.open(str(wav), "rb") as f:
+        raw = f.readframes(f.getnframes())
+    samples = [int.from_bytes(raw[i:i + 2], "little", signed=True)
+               for i in range(0, len(raw), 2)]
+    # 掐头去尾的静音,两端各留 60ms
+    thresh, pad = 400, AUDIO_RATE * 60 // 1000
+    idx = [i for i, s in enumerate(samples) if abs(s) > thresh]
+    if idx:
+        samples = samples[max(0, idx[0] - pad):idx[-1] + pad]
+    return bytes(_ulaw_byte(s) for s in samples)
+
+
+def emit_audio(entries):
+    blob = bytearray()
+    offsets = [0]
+    with tempfile.TemporaryDirectory() as tmpdir:
+        tmp = pathlib.Path(tmpdir)
+        for word, _gloss, _emoji in entries:
+            data = _tts_ulaw(word, tmp)
+            blob.extend(data)
+            offsets.append(len(blob))
+            print(f"发音 {word}: {len(data) * 1000 // AUDIO_RATE} ms")
+    lines = [
+        "// main/words_audio.c —— 由 tools/words_pack.py 生成(macOS say 合成,G.711 u-law),勿手改。",
+        '#include "words_data.h"',
+        "",
+        f"const uint32_t WORDS_AUDIO_RATE = {AUDIO_RATE};",
+        "",
+        "const uint32_t WORDS_AUDIO_OFS[] = {",
+    ]
+    lines.append("    " + ",".join(str(o) for o in offsets))
+    lines += ["};", "", "const uint8_t WORDS_AUDIO[] = {"]
+    for i in range(0, len(blob), 24):
+        lines.append("    " + ",".join(f"0x{b:02x}" for b in blob[i:i + 24]) + ",")
+    lines += ["};", ""]
+    OUT_AUDIO.write_text("\n".join(lines), encoding="utf-8")
+    print(f"发音: {len(entries)} 词 / {len(blob) // 1024} KB u-law -> {OUT_AUDIO.relative_to(ROOT)}")
 
 
 def collect_glyphs(entries) -> str:
@@ -196,6 +269,8 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--images", action="store_true",
                     help="下载 Twemoji 并重新生成 main/words_images.c")
+    ap.add_argument("--audio", action="store_true",
+                    help="用 macOS say+afconvert 重新生成 main/words_audio.c")
     ap.add_argument("--font", help="CJK 字体文件(ttf/otf),给出则重新生成 main/font_cjk16.c")
     args = ap.parse_args()
 
@@ -206,6 +281,8 @@ def main():
 
     if args.images:
         emit_images(entries)
+    if args.audio:
+        emit_audio(entries)
     if args.font:
         emit_font(entries, args.font)
 

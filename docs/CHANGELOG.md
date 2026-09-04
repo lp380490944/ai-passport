@@ -6,12 +6,13 @@
 
 ## Unreleased
 
-- Added a pixel-bear Words picture-flashcard app page for children: 120 common
-  concrete words in practice groups of 10, each with a Twemoji picture, UP/DOWN
-  to browse, OK to reveal or hide the Chinese, group-completion celebration,
-  per-group progress dots, a battery readout, and the review cursor persisted
-  to NVS. The word bank lives in `assets/words/words.tsv`;
-  `tools/words_pack.py` regenerates the word table, the pictures, and the
+- Added a pixel-bear Words listen-and-find game page for children: each round
+  speaks an English word (synthesized speech baked in as G.711 u-law) and shows
+  three Twemoji picture cards mapped to the three physical keys; a correct pick
+  scores a point and advances, a wrong pick flashes red, replays the audio, and
+  says try again. Score and word cursor persist to NVS, hold UP to replay. The
+  word bank (120 common concrete words) lives in `assets/words/words.tsv`;
+  `tools/words_pack.py` regenerates the word table, pictures, speech, and the
   16 px CJK font.
 - Added a pixel-art Todo list app page: navigate with UP/DOWN, toggle items
   with OK, long-press UP to add a task from a template pool, long-press DOWN
