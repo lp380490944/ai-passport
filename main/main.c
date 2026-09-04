@@ -26,6 +26,8 @@ static const demo_entry_t DEMOS[] = {
     { "Wi-Fi",   demo_wifi_enter,    demo_wifi_exit,    demo_wifi_key    },
     { "BLE",     demo_ble_enter,     demo_ble_exit,     demo_ble_key     },
     { "Low Power", demo_low_power_enter, demo_low_power_exit, demo_low_power_key },
+    { "Todo",    demo_todo_enter,    demo_todo_exit,    demo_todo_key    },
+    { "Words",   demo_words_enter,   demo_words_exit,   demo_words_key   },
 };
 #define DEMO_COUNT (sizeof(DEMOS) / sizeof(DEMOS[0]))
 
@@ -53,17 +55,18 @@ static void menu_refresh(void) {
 static void menu_build(void) {
     s_menu_scr = ui_pixel_screen_create("FoloToy");
 
+    // 9 个演示页 = 2 列 5 行;行距 40 才能让最后一行不压到吉祥物和草地。
     for (size_t i = 0; i < DEMO_COUNT; i++) {
         int x = 11 + (int)(i % 2) * 112;
-        int y = 52 + (int)(i / 2) * 47;
-        s_cards[i] = ui_pixel_panel_create(s_menu_scr, x, y, 102, 40, UI_PAPER);
+        int y = 50 + (int)(i / 2) * 40;
+        s_cards[i] = ui_pixel_panel_create(s_menu_scr, x, y, 102, 34, UI_PAPER);
         s_rows[i] = lv_label_create(s_cards[i]);
         lv_obj_set_style_text_font(s_rows[i], &lv_font_montserrat_14, 0);
         lv_obj_set_style_text_align(s_rows[i], LV_TEXT_ALIGN_CENTER, 0);
         lv_obj_center(s_rows[i]);
     }
 
-    s_mascot = ui_pixel_mascot_create(s_menu_scr, 101, 242);
+    s_mascot = ui_pixel_mascot_create(s_menu_scr, 165, 252);
 
     menu_refresh();
     lv_screen_load(s_menu_scr);
@@ -131,6 +134,8 @@ void app_main(void) {
     s_ok[4] = true;                                    // 页面内按需初始化并显示错误
     s_ok[5] = true;
     s_ok[6] = true;
+    s_ok[7] = true;                                    // Todo:NVS 失败时页内降级为不保存
+    s_ok[8] = true;                                    // Words:同上
 
     if (bsp_lvgl_lock(1000)) { enter_menu(); bsp_lvgl_unlock(); }
 

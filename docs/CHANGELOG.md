@@ -6,6 +6,16 @@
 
 ## Unreleased
 
+- Added a pixel-bear Words flashcard app page: 350 CET-4 core words with
+  Chinese glosses in practice groups of 10, UP/DOWN to browse, OK to reveal or
+  hide the gloss, group-completion celebration, per-group progress dots, a
+  battery readout, and the review cursor persisted to NVS. The word bank lives
+  in `assets/words/words.tsv`; `tools/words_pack.py` regenerates the word
+  table and the 16 px CJK font.
+- Added a pixel-art Todo list app page: navigate with UP/DOWN, toggle items
+  with OK, long-press UP to add a task from a template pool, long-press DOWN
+  to delete, with a progress bar, scroll indicators, a battery readout, and
+  the list persisted to NVS across reboots.
 - Made mini-program BLE install compatibility a template-level invariant: fixed
   protected `cardid`/Recovery partitions, retained the five-second UP-key
   Recovery boot hook, and added CI validation for merged-image structure,
