@@ -1,357 +1,248 @@
 // main/words_data.c —— 由 tools/words_pack.py 从 assets/words/words.tsv 生成,勿手改。
 #include "words_data.h"
 
+extern const lv_image_dsc_t img_w000;
+extern const lv_image_dsc_t img_w001;
+extern const lv_image_dsc_t img_w002;
+extern const lv_image_dsc_t img_w003;
+extern const lv_image_dsc_t img_w004;
+extern const lv_image_dsc_t img_w005;
+extern const lv_image_dsc_t img_w006;
+extern const lv_image_dsc_t img_w007;
+extern const lv_image_dsc_t img_w008;
+extern const lv_image_dsc_t img_w009;
+extern const lv_image_dsc_t img_w010;
+extern const lv_image_dsc_t img_w011;
+extern const lv_image_dsc_t img_w012;
+extern const lv_image_dsc_t img_w013;
+extern const lv_image_dsc_t img_w014;
+extern const lv_image_dsc_t img_w015;
+extern const lv_image_dsc_t img_w016;
+extern const lv_image_dsc_t img_w017;
+extern const lv_image_dsc_t img_w018;
+extern const lv_image_dsc_t img_w019;
+extern const lv_image_dsc_t img_w020;
+extern const lv_image_dsc_t img_w021;
+extern const lv_image_dsc_t img_w022;
+extern const lv_image_dsc_t img_w023;
+extern const lv_image_dsc_t img_w024;
+extern const lv_image_dsc_t img_w025;
+extern const lv_image_dsc_t img_w026;
+extern const lv_image_dsc_t img_w027;
+extern const lv_image_dsc_t img_w028;
+extern const lv_image_dsc_t img_w029;
+extern const lv_image_dsc_t img_w030;
+extern const lv_image_dsc_t img_w031;
+extern const lv_image_dsc_t img_w032;
+extern const lv_image_dsc_t img_w033;
+extern const lv_image_dsc_t img_w034;
+extern const lv_image_dsc_t img_w035;
+extern const lv_image_dsc_t img_w036;
+extern const lv_image_dsc_t img_w037;
+extern const lv_image_dsc_t img_w038;
+extern const lv_image_dsc_t img_w039;
+extern const lv_image_dsc_t img_w040;
+extern const lv_image_dsc_t img_w041;
+extern const lv_image_dsc_t img_w042;
+extern const lv_image_dsc_t img_w043;
+extern const lv_image_dsc_t img_w044;
+extern const lv_image_dsc_t img_w045;
+extern const lv_image_dsc_t img_w046;
+extern const lv_image_dsc_t img_w047;
+extern const lv_image_dsc_t img_w048;
+extern const lv_image_dsc_t img_w049;
+extern const lv_image_dsc_t img_w050;
+extern const lv_image_dsc_t img_w051;
+extern const lv_image_dsc_t img_w052;
+extern const lv_image_dsc_t img_w053;
+extern const lv_image_dsc_t img_w054;
+extern const lv_image_dsc_t img_w055;
+extern const lv_image_dsc_t img_w056;
+extern const lv_image_dsc_t img_w057;
+extern const lv_image_dsc_t img_w058;
+extern const lv_image_dsc_t img_w059;
+extern const lv_image_dsc_t img_w060;
+extern const lv_image_dsc_t img_w061;
+extern const lv_image_dsc_t img_w062;
+extern const lv_image_dsc_t img_w063;
+extern const lv_image_dsc_t img_w064;
+extern const lv_image_dsc_t img_w065;
+extern const lv_image_dsc_t img_w066;
+extern const lv_image_dsc_t img_w067;
+extern const lv_image_dsc_t img_w068;
+extern const lv_image_dsc_t img_w069;
+extern const lv_image_dsc_t img_w070;
+extern const lv_image_dsc_t img_w071;
+extern const lv_image_dsc_t img_w072;
+extern const lv_image_dsc_t img_w073;
+extern const lv_image_dsc_t img_w074;
+extern const lv_image_dsc_t img_w075;
+extern const lv_image_dsc_t img_w076;
+extern const lv_image_dsc_t img_w077;
+extern const lv_image_dsc_t img_w078;
+extern const lv_image_dsc_t img_w079;
+extern const lv_image_dsc_t img_w080;
+extern const lv_image_dsc_t img_w081;
+extern const lv_image_dsc_t img_w082;
+extern const lv_image_dsc_t img_w083;
+extern const lv_image_dsc_t img_w084;
+extern const lv_image_dsc_t img_w085;
+extern const lv_image_dsc_t img_w086;
+extern const lv_image_dsc_t img_w087;
+extern const lv_image_dsc_t img_w088;
+extern const lv_image_dsc_t img_w089;
+extern const lv_image_dsc_t img_w090;
+extern const lv_image_dsc_t img_w091;
+extern const lv_image_dsc_t img_w092;
+extern const lv_image_dsc_t img_w093;
+extern const lv_image_dsc_t img_w094;
+extern const lv_image_dsc_t img_w095;
+extern const lv_image_dsc_t img_w096;
+extern const lv_image_dsc_t img_w097;
+extern const lv_image_dsc_t img_w098;
+extern const lv_image_dsc_t img_w099;
+extern const lv_image_dsc_t img_w100;
+extern const lv_image_dsc_t img_w101;
+extern const lv_image_dsc_t img_w102;
+extern const lv_image_dsc_t img_w103;
+extern const lv_image_dsc_t img_w104;
+extern const lv_image_dsc_t img_w105;
+extern const lv_image_dsc_t img_w106;
+extern const lv_image_dsc_t img_w107;
+extern const lv_image_dsc_t img_w108;
+extern const lv_image_dsc_t img_w109;
+extern const lv_image_dsc_t img_w110;
+extern const lv_image_dsc_t img_w111;
+extern const lv_image_dsc_t img_w112;
+extern const lv_image_dsc_t img_w113;
+extern const lv_image_dsc_t img_w114;
+extern const lv_image_dsc_t img_w115;
+extern const lv_image_dsc_t img_w116;
+extern const lv_image_dsc_t img_w117;
+extern const lv_image_dsc_t img_w118;
+extern const lv_image_dsc_t img_w119;
+
 const word_entry_t WORDS[] = {
-    { "abandon", "v. 放弃；抛弃" },
-    { "ability", "n. 能力；才能" },
-    { "absorb", "v. 吸收；使专心" },
-    { "abstract", "adj. 抽象的 n. 摘要" },
-    { "abundant", "adj. 丰富的；充裕的" },
-    { "academic", "adj. 学术的；学院的" },
-    { "accelerate", "v. 加速；促进" },
-    { "access", "n. 入口；使用权" },
-    { "accompany", "v. 陪伴；伴随" },
-    { "accomplish", "v. 完成；实现" },
-    { "account", "n. 账户；描述" },
-    { "accurate", "adj. 准确的；精确的" },
-    { "accuse", "v. 指控；指责" },
-    { "achieve", "v. 达到；实现" },
-    { "acknowledge", "v. 承认；致谢" },
-    { "acquire", "v. 获得；学到" },
-    { "adapt", "v. 适应；改编" },
-    { "adequate", "adj. 足够的；适当的" },
-    { "adjust", "v. 调整；适应" },
-    { "admire", "v. 钦佩；欣赏" },
-    { "admit", "v. 承认；准许进入" },
-    { "adopt", "v. 采用；收养" },
-    { "advance", "v. 前进 n. 进展" },
-    { "advantage", "n. 优势；有利条件" },
-    { "adventure", "n. 冒险；奇遇" },
-    { "advertise", "v. 做广告；宣传" },
-    { "advocate", "v. 提倡 n. 拥护者" },
-    { "affect", "v. 影响；感动" },
-    { "afford", "v. 负担得起" },
-    { "agency", "n. 代理处；机构" },
-    { "aggressive", "adj. 侵略的；进取的" },
-    { "agriculture", "n. 农业；农学" },
-    { "alternative", "n. 选择 adj. 备选的" },
-    { "amaze", "v. 使惊奇" },
-    { "ambition", "n. 雄心；抱负" },
-    { "amount", "n. 数量；总额" },
-    { "analyze", "v. 分析；解析" },
-    { "ancient", "adj. 古代的；古老的" },
-    { "announce", "v. 宣布；声明" },
-    { "annual", "adj. 每年的；年度的" },
-    { "anticipate", "v. 预期；期望" },
-    { "anxious", "adj. 焦虑的；渴望的" },
-    { "apologize", "v. 道歉；认错" },
-    { "apparent", "adj. 明显的；表面的" },
-    { "appeal", "v. 呼吁；上诉；吸引" },
-    { "appetite", "n. 食欲；欲望" },
-    { "apply", "v. 申请；应用" },
-    { "appoint", "v. 任命；约定" },
-    { "appreciate", "v. 感激；欣赏" },
-    { "approach", "v. 接近 n. 方法" },
-    { "appropriate", "adj. 适当的；恰当的" },
-    { "approve", "v. 批准；赞成" },
-    { "argue", "v. 争论；主张" },
-    { "arise", "v. 出现；发生" },
-    { "arrange", "v. 安排；整理" },
-    { "artificial", "adj. 人造的；虚假的" },
-    { "ashamed", "adj. 羞愧的；惭愧的" },
-    { "aspect", "n. 方面；外观" },
-    { "assess", "v. 评估；评定" },
-    { "assign", "v. 分配；指派" },
-    { "assist", "v. 帮助；协助" },
-    { "associate", "v. 联系 n. 同事" },
-    { "assume", "v. 假定；承担" },
-    { "assure", "v. 保证；使确信" },
-    { "astonish", "v. 使惊讶" },
-    { "athlete", "n. 运动员" },
-    { "atmosphere", "n. 大气；气氛" },
-    { "attach", "v. 系上；附加" },
-    { "attain", "v. 达到；获得" },
-    { "attempt", "v./n. 尝试；企图" },
-    { "attend", "v. 出席；照料" },
-    { "attitude", "n. 态度；看法" },
-    { "attract", "v. 吸引；引起" },
-    { "audience", "n. 观众；听众" },
-    { "authority", "n. 权威；当局" },
-    { "automatic", "adj. 自动的" },
-    { "available", "adj. 可用的；有空的" },
-    { "average", "adj. 平均的；普通的" },
-    { "avoid", "v. 避免；躲开" },
-    { "aware", "adj. 意识到的" },
-    { "balance", "n. 平衡；余额" },
-    { "bargain", "n. 便宜货 v. 讨价还价" },
-    { "barrier", "n. 障碍；屏障" },
-    { "basis", "n. 基础；根据" },
-    { "behave", "v. 表现；举止" },
-    { "benefit", "n. 利益 v. 有益于" },
-    { "bother", "v. 打扰；烦扰" },
-    { "boundary", "n. 边界；分界线" },
-    { "brief", "adj. 简短的；短暂的" },
-    { "brilliant", "adj. 杰出的；灿烂的" },
-    { "budget", "n. 预算" },
-    { "burden", "n. 负担；重担" },
-    { "calculate", "v. 计算；估计" },
-    { "campaign", "n. 运动；战役" },
-    { "candidate", "n. 候选人；应试者" },
-    { "capable", "adj. 有能力的" },
-    { "capacity", "n. 容量；能力" },
-    { "capture", "v. 捕获；夺取" },
-    { "career", "n. 职业；生涯" },
-    { "casual", "adj. 随便的；偶然的" },
-    { "cautious", "adj. 谨慎的；小心的" },
-    { "cease", "v. 停止；终止" },
-    { "celebrate", "v. 庆祝；赞美" },
-    { "challenge", "n./v. 挑战；质疑" },
-    { "character", "n. 性格；角色；字符" },
-    { "charge", "v. 收费；充电；指控" },
-    { "chase", "v. 追逐；追求" },
-    { "cheat", "v. 欺骗；作弊" },
-    { "chemical", "adj. 化学的 n. 化学品" },
-    { "circumstance", "n. 环境；情况" },
-    { "claim", "v. 声称；索取" },
-    { "classify", "v. 分类；归类" },
-    { "climate", "n. 气候；风气" },
-    { "collapse", "v. 倒塌；崩溃" },
-    { "colleague", "n. 同事；同僚" },
-    { "combine", "v. 结合；联合" },
-    { "comment", "n./v. 评论；意见" },
-    { "commercial", "adj. 商业的 n. 广告" },
-    { "commit", "v. 犯(错)；承诺" },
-    { "committee", "n. 委员会" },
-    { "communicate", "v. 交流；传达" },
-    { "community", "n. 社区；团体" },
-    { "compare", "v. 比较；对比" },
-    { "compete", "v. 竞争；比赛" },
-    { "complain", "v. 抱怨；投诉" },
-    { "complex", "adj. 复杂的 n. 综合体" },
-    { "complicated", "adj. 复杂的；难懂的" },
-    { "compose", "v. 组成；创作" },
-    { "comprehensive", "adj. 全面的；综合的" },
-    { "compromise", "n./v. 妥协；折中" },
-    { "concentrate", "v. 集中；专心" },
-    { "concept", "n. 概念；观念" },
-    { "concern", "v. 关心 n. 忧虑" },
-    { "conclude", "v. 得出结论；结束" },
-    { "concrete", "adj. 具体的 n. 混凝土" },
-    { "condition", "n. 条件；状况" },
-    { "conduct", "v. 进行；指挥" },
-    { "conference", "n. 会议；讨论会" },
-    { "confident", "adj. 自信的；确信的" },
-    { "confirm", "v. 确认；证实" },
-    { "conflict", "n. 冲突；矛盾" },
-    { "confuse", "v. 使困惑；混淆" },
-    { "congratulate", "v. 祝贺" },
-    { "connect", "v. 连接；联系" },
-    { "conscious", "adj. 有意识的" },
-    { "consequence", "n. 结果；后果" },
-    { "conservative", "adj. 保守的" },
-    { "consider", "v. 考虑；认为" },
-    { "consist", "v. 组成；在于" },
-    { "constant", "adj. 不断的；恒定的" },
-    { "construct", "v. 建造；构筑" },
-    { "consult", "v. 咨询；查阅" },
-    { "consume", "v. 消耗；消费" },
-    { "contact", "n./v. 接触；联系" },
-    { "contain", "v. 包含；容纳" },
-    { "contemporary", "adj. 当代的；同时代的" },
-    { "content", "n. 内容 adj. 满足的" },
-    { "contest", "n. 竞赛；争夺" },
-    { "context", "n. 上下文；背景" },
-    { "continue", "v. 继续；延续" },
-    { "contract", "n. 合同 v. 收缩" },
-    { "contrary", "adj. 相反的 n. 反面" },
-    { "contrast", "n./v. 对比；对照" },
-    { "contribute", "v. 贡献；投稿" },
-    { "convenient", "adj. 方便的；便利的" },
-    { "conventional", "adj. 传统的；常规的" },
-    { "convey", "v. 传达；运送" },
-    { "convince", "v. 使信服；说服" },
-    { "cooperate", "v. 合作；配合" },
-    { "cope", "v. 应付；处理" },
-    { "correspond", "v. 符合；通信" },
-    { "cost", "n. 成本 v. 花费" },
-    { "courage", "n. 勇气；胆量" },
-    { "create", "v. 创造；创作" },
-    { "creative", "adj. 有创造力的" },
-    { "credit", "n. 信用；学分" },
-    { "crisis", "n. 危机；紧要关头" },
-    { "criticize", "v. 批评；评论" },
-    { "crucial", "adj. 关键的；决定性的" },
-    { "cultivate", "v. 培养；耕作" },
-    { "curious", "adj. 好奇的；奇特的" },
-    { "current", "adj. 当前的 n. 水流" },
-    { "curriculum", "n. 课程" },
-    { "custom", "n. 习俗；海关" },
-    { "damage", "n./v. 损害；毁坏" },
-    { "debate", "n./v. 辩论；争论" },
-    { "decade", "n. 十年" },
-    { "decent", "adj. 体面的；正派的" },
-    { "declare", "v. 宣布；申报" },
-    { "decline", "v. 下降；婉拒" },
-    { "decorate", "v. 装饰；布置" },
-    { "decrease", "v./n. 减少；降低" },
-    { "dedicate", "v. 奉献；致力于" },
-    { "defeat", "v. 击败 n. 失败" },
-    { "defend", "v. 防御；辩护" },
-    { "define", "v. 定义；限定" },
-    { "definite", "adj. 明确的；一定的" },
-    { "degree", "n. 程度；学位" },
-    { "delay", "v./n. 延迟；耽搁" },
-    { "deliberate", "adj. 故意的；深思的" },
-    { "delicate", "adj. 精致的；脆弱的" },
-    { "deliver", "v. 递送；发表" },
-    { "demand", "n./v. 要求；需求" },
-    { "demonstrate", "v. 证明；示范" },
-    { "deny", "v. 否认；拒绝" },
-    { "depend", "v. 依靠；取决于" },
-    { "deposit", "n. 存款；押金" },
-    { "depress", "v. 使沮丧；使萧条" },
-    { "derive", "v. 源于；获得" },
-    { "describe", "v. 描述；形容" },
-    { "deserve", "v. 应得；值得" },
-    { "design", "n./v. 设计；图案" },
-    { "desire", "n./v. 渴望；愿望" },
-    { "despite", "prep. 尽管；不管" },
-    { "destroy", "v. 破坏；消灭" },
-    { "detail", "n. 细节；详情" },
-    { "detect", "v. 察觉；侦查" },
-    { "determine", "v. 决定；确定" },
-    { "develop", "v. 发展；开发" },
-    { "device", "n. 装置；设备" },
-    { "devote", "v. 奉献；致力" },
-    { "digital", "adj. 数字的；数码的" },
-    { "diligent", "adj. 勤奋的" },
-    { "dimension", "n. 尺寸；维度" },
-    { "diminish", "v. 减少；缩小" },
-    { "disaster", "n. 灾难；不幸" },
-    { "discipline", "n. 纪律；学科" },
-    { "discount", "n. 折扣" },
-    { "discover", "v. 发现；发觉" },
-    { "discuss", "v. 讨论；商议" },
-    { "disguise", "v./n. 伪装；掩饰" },
-    { "dismiss", "v. 解雇；驳回" },
-    { "display", "v./n. 展示；陈列" },
-    { "dispute", "n./v. 争论；争端" },
-    { "distinguish", "v. 区分；辨别" },
-    { "distribute", "v. 分配；分发" },
-    { "disturb", "v. 打扰；扰乱" },
-    { "diverse", "adj. 多样的；不同的" },
-    { "divide", "v. 分开；划分" },
-    { "domestic", "adj. 国内的；家庭的" },
-    { "dominate", "v. 支配；占优势" },
-    { "donate", "v. 捐赠；捐献" },
-    { "doubt", "n./v. 怀疑；疑问" },
-    { "dramatic", "adj. 戏剧性的；显著的" },
-    { "durable", "adj. 耐用的；持久的" },
-    { "dynamic", "adj. 动态的；有活力的" },
-    { "eager", "adj. 渴望的；热切的" },
-    { "economic", "adj. 经济的；经济学的" },
-    { "edit", "v. 编辑；剪辑" },
-    { "educate", "v. 教育；培养" },
-    { "effect", "n. 效果；影响" },
-    { "efficient", "adj. 高效的；有能力的" },
-    { "effort", "n. 努力；成就" },
-    { "elaborate", "adj. 精心的 v. 详述" },
-    { "elect", "v. 选举；选择" },
-    { "electronic", "adj. 电子的" },
-    { "element", "n. 元素；要素" },
-    { "eliminate", "v. 消除；淘汰" },
-    { "embarrass", "v. 使尴尬；使窘迫" },
-    { "embrace", "v. 拥抱；欣然接受" },
-    { "emerge", "v. 出现；浮现" },
-    { "emergency", "n. 紧急情况" },
-    { "emotion", "n. 情感；情绪" },
-    { "emphasize", "v. 强调；着重" },
-    { "employ", "v. 雇用；使用" },
-    { "enable", "v. 使能够" },
-    { "encounter", "v./n. 遭遇；偶遇" },
-    { "encourage", "v. 鼓励；促进" },
-    { "endure", "v. 忍受；持续" },
-    { "engage", "v. 从事；订婚" },
-    { "enhance", "v. 提高；增强" },
-    { "enormous", "adj. 巨大的；庞大的" },
-    { "ensure", "v. 确保；保证" },
-    { "enterprise", "n. 企业；事业心" },
-    { "entertain", "v. 娱乐；招待" },
-    { "enthusiasm", "n. 热情；热心" },
-    { "entire", "adj. 全部的；整个的" },
-    { "entitle", "v. 使有资格；题名" },
-    { "environment", "n. 环境；外界" },
-    { "equal", "adj. 相等的；平等的" },
-    { "equip", "v. 装备；配备" },
-    { "equivalent", "adj. 等价的 n. 等同物" },
-    { "essential", "adj. 必要的；本质的" },
-    { "establish", "v. 建立；确立" },
-    { "estimate", "v./n. 估计；评价" },
-    { "evaluate", "v. 评估；评价" },
-    { "eventually", "adv. 最终；终于" },
-    { "evidence", "n. 证据；迹象" },
-    { "evident", "adj. 明显的" },
-    { "evolve", "v. 演变；进化" },
-    { "exaggerate", "v. 夸张；夸大" },
-    { "examine", "v. 检查；考试" },
-    { "exceed", "v. 超过；胜过" },
-    { "excellent", "adj. 极好的；优秀的" },
-    { "exchange", "n./v. 交换；兑换" },
-    { "exclude", "v. 排除；排斥" },
-    { "excuse", "n. 借口 v. 原谅" },
-    { "execute", "v. 执行；处决" },
-    { "exhibit", "v. 展览；显示" },
-    { "exist", "v. 存在；生存" },
-    { "expand", "v. 扩大；膨胀" },
-    { "expect", "v. 期望；预料" },
-    { "expense", "n. 花费；开支" },
-    { "experiment", "n. 实验；试验" },
-    { "expert", "n. 专家 adj. 熟练的" },
-    { "explore", "v. 探索；勘探" },
-    { "expose", "v. 揭露；使暴露" },
-    { "express", "v. 表达 adj. 快递的" },
-    { "extend", "v. 延伸；扩展" },
-    { "external", "adj. 外部的；外面的" },
-    { "extraordinary", "adj. 非凡的；特别的" },
-    { "extreme", "adj. 极端的；极度的" },
-    { "facility", "n. 设施；设备" },
-    { "factor", "n. 因素；要素" },
-    { "faculty", "n. 才能；全体教员" },
-    { "familiar", "adj. 熟悉的；常见的" },
-    { "fascinate", "v. 使着迷" },
-    { "fashion", "n. 时尚；方式" },
-    { "fatigue", "n. 疲劳；劳累" },
-    { "favor", "n. 恩惠 v. 偏爱" },
-    { "feature", "n. 特征 v. 以…为特色" },
-    { "federal", "adj. 联邦的" },
-    { "feedback", "n. 反馈；回馈" },
-    { "fierce", "adj. 凶猛的；激烈的" },
-    { "figure", "n. 数字；人物 v. 认为" },
-    { "finance", "n. 财政 v. 资助" },
-    { "flexible", "adj. 灵活的；柔韧的" },
-    { "focus", "v./n. 集中；焦点" },
-    { "forbid", "v. 禁止；不准" },
-    { "forecast", "n./v. 预报；预测" },
-    { "formal", "adj. 正式的；正规的" },
-    { "former", "adj. 以前的；前者的" },
-    { "fortune", "n. 财富；运气" },
-    { "forward", "adv. 向前 v. 转发" },
-    { "foundation", "n. 基础；基金会" },
-    { "frequent", "adj. 频繁的；常见的" },
-    { "frustrate", "v. 使沮丧；挫败" },
-    { "fulfill", "v. 履行；实现" },
-    { "function", "n. 功能 v. 运转" },
-    { "fundamental", "adj. 基本的；根本的" },
-    { "furthermore", "adv. 此外；而且" },
-    { "generate", "v. 产生；生成" },
-    { "generous", "adj. 慷慨的；大方的" },
-    { "genuine", "adj. 真正的；真诚的" },
-    { "gradual", "adj. 逐渐的；渐进的" },
-    { "grateful", "adj. 感激的；感谢的" },
-    { "guarantee", "v./n. 保证；担保" },
-    { "guilty", "adj. 内疚的；有罪的" },
-    { "handle", "v. 处理 n. 把手" },
-    { "harmony", "n. 和谐；融洽" },
+    { "apple", "苹果", &img_w000 },
+    { "banana", "香蕉", &img_w001 },
+    { "orange", "橙子", &img_w002 },
+    { "grape", "葡萄", &img_w003 },
+    { "watermelon", "西瓜", &img_w004 },
+    { "strawberry", "草莓", &img_w005 },
+    { "peach", "桃子", &img_w006 },
+    { "pear", "梨", &img_w007 },
+    { "lemon", "柠檬", &img_w008 },
+    { "cherry", "樱桃", &img_w009 },
+    { "cat", "猫", &img_w010 },
+    { "dog", "狗", &img_w011 },
+    { "pig", "猪", &img_w012 },
+    { "cow", "奶牛", &img_w013 },
+    { "rabbit", "兔子", &img_w014 },
+    { "tiger", "老虎", &img_w015 },
+    { "lion", "狮子", &img_w016 },
+    { "monkey", "猴子", &img_w017 },
+    { "panda", "熊猫", &img_w018 },
+    { "bear", "熊", &img_w019 },
+    { "fish", "鱼", &img_w020 },
+    { "bird", "鸟", &img_w021 },
+    { "duck", "鸭子", &img_w022 },
+    { "chicken", "鸡", &img_w023 },
+    { "horse", "马", &img_w024 },
+    { "sheep", "绵羊", &img_w025 },
+    { "elephant", "大象", &img_w026 },
+    { "snake", "蛇", &img_w027 },
+    { "frog", "青蛙", &img_w028 },
+    { "bee", "蜜蜂", &img_w029 },
+    { "milk", "牛奶", &img_w030 },
+    { "bread", "面包", &img_w031 },
+    { "egg", "鸡蛋", &img_w032 },
+    { "rice", "米饭", &img_w033 },
+    { "cake", "蛋糕", &img_w034 },
+    { "pizza", "披萨", &img_w035 },
+    { "hamburger", "汉堡包", &img_w036 },
+    { "noodles", "面条", &img_w037 },
+    { "ice cream", "冰激凌", &img_w038 },
+    { "cookie", "饼干", &img_w039 },
+    { "juice", "果汁", &img_w040 },
+    { "candy", "糖果", &img_w041 },
+    { "corn", "玉米", &img_w042 },
+    { "tomato", "西红柿", &img_w043 },
+    { "potato", "土豆", &img_w044 },
+    { "carrot", "胡萝卜", &img_w045 },
+    { "pumpkin", "南瓜", &img_w046 },
+    { "mushroom", "蘑菇", &img_w047 },
+    { "pineapple", "菠萝", &img_w048 },
+    { "coconut", "椰子", &img_w049 },
+    { "sun", "太阳", &img_w050 },
+    { "moon", "月亮", &img_w051 },
+    { "star", "星星", &img_w052 },
+    { "cloud", "云", &img_w053 },
+    { "rain", "雨", &img_w054 },
+    { "snow", "雪", &img_w055 },
+    { "tree", "树", &img_w056 },
+    { "flower", "花", &img_w057 },
+    { "fire", "火", &img_w058 },
+    { "rainbow", "彩虹", &img_w059 },
+    { "car", "小汽车", &img_w060 },
+    { "bus", "公共汽车", &img_w061 },
+    { "train", "火车", &img_w062 },
+    { "plane", "飞机", &img_w063 },
+    { "ship", "轮船", &img_w064 },
+    { "bike", "自行车", &img_w065 },
+    { "taxi", "出租车", &img_w066 },
+    { "truck", "卡车", &img_w067 },
+    { "rocket", "火箭", &img_w068 },
+    { "boat", "帆船", &img_w069 },
+    { "eye", "眼睛", &img_w070 },
+    { "ear", "耳朵", &img_w071 },
+    { "nose", "鼻子", &img_w072 },
+    { "mouth", "嘴巴", &img_w073 },
+    { "hand", "手", &img_w074 },
+    { "foot", "脚", &img_w075 },
+    { "baby", "婴儿", &img_w076 },
+    { "boy", "男孩", &img_w077 },
+    { "girl", "女孩", &img_w078 },
+    { "heart", "爱心", &img_w079 },
+    { "book", "书", &img_w080 },
+    { "pen", "钢笔", &img_w081 },
+    { "bag", "书包", &img_w082 },
+    { "clock", "闹钟", &img_w083 },
+    { "phone", "手机", &img_w084 },
+    { "computer", "电脑", &img_w085 },
+    { "umbrella", "雨伞", &img_w086 },
+    { "key", "钥匙", &img_w087 },
+    { "ball", "足球", &img_w088 },
+    { "gift", "礼物", &img_w089 },
+    { "hat", "帽子", &img_w090 },
+    { "shirt", "衬衫", &img_w091 },
+    { "shoes", "鞋子", &img_w092 },
+    { "socks", "袜子", &img_w093 },
+    { "dress", "连衣裙", &img_w094 },
+    { "house", "房子", &img_w095 },
+    { "bed", "床", &img_w096 },
+    { "chair", "椅子", &img_w097 },
+    { "door", "门", &img_w098 },
+    { "cup", "杯子", &img_w099 },
+    { "butterfly", "蝴蝶", &img_w100 },
+    { "ant", "蚂蚁", &img_w101 },
+    { "spider", "蜘蛛", &img_w102 },
+    { "turtle", "乌龟", &img_w103 },
+    { "dolphin", "海豚", &img_w104 },
+    { "whale", "鲸鱼", &img_w105 },
+    { "penguin", "企鹅", &img_w106 },
+    { "owl", "猫头鹰", &img_w107 },
+    { "fox", "狐狸", &img_w108 },
+    { "wolf", "狼", &img_w109 },
+    { "sea", "大海", &img_w110 },
+    { "mountain", "高山", &img_w111 },
+    { "leaf", "树叶", &img_w112 },
+    { "music", "音乐", &img_w113 },
+    { "balloon", "气球", &img_w114 },
+    { "kite", "风筝", &img_w115 },
+    { "robot", "机器人", &img_w116 },
+    { "drum", "鼓", &img_w117 },
+    { "guitar", "吉他", &img_w118 },
+    { "camera", "照相机", &img_w119 },
 };
 
 const int WORDS_COUNT = sizeof(WORDS) / sizeof(WORDS[0]);

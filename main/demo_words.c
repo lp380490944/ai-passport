@@ -38,7 +38,7 @@ static bool s_dirty;             // 游标有未落盘修改
 // ---- UI 对象 ----
 static lv_obj_t   *s_scr, *s_bear, *s_batt;
 static lv_obj_t   *s_group_label, *s_total_label;
-static lv_obj_t   *s_word, *s_gloss;
+static lv_obj_t   *s_img, *s_word, *s_gloss;
 static lv_obj_t   *s_dots[WORDS_GROUP_SIZE];
 static lv_obj_t   *s_done_panel, *s_done_title, *s_done_sub;
 static lv_timer_t *s_timer;
@@ -83,6 +83,7 @@ static void refresh(void)
     lv_label_set_text_fmt(s_group_label, "第%d组/%d", group + 1, total_groups);
     lv_label_set_text_fmt(s_total_label, "%d/%d", s_cur + 1, WORDS_COUNT);
 
+    lv_image_set_src(s_img, WORDS[s_cur].img);
     lv_label_set_text(s_word, WORDS[s_cur].word);
     if (s_show_gloss) {
         lv_label_set_text(s_gloss, WORDS[s_cur].gloss);
@@ -214,22 +215,22 @@ void demo_words_enter(void)
     s_total_label = ui_pixel_label(stat, "", &lv_font_montserrat_14, UI_INK);
     lv_obj_align(s_total_label, LV_ALIGN_RIGHT_MID, -10, 0);
 
-    // 单词卡:上英文,下释义(默认藏中文)
-    lv_obj_t *card = ui_pixel_panel_create(s_scr, 18, 92, 204, 112, UI_PAPER);
+    // 单词卡:大图在上给小朋友认,英文在中,中文默认藏着
+    lv_obj_t *card = ui_pixel_panel_create(s_scr, 18, 86, 204, 142, UI_PAPER);
     lv_obj_set_style_pad_all(card, 0, 0);
+    s_img = lv_image_create(card);
+    lv_obj_align(s_img, LV_ALIGN_TOP_MID, 0, 8);
     s_word = ui_pixel_label(card, "", &lv_font_montserrat_20, UI_INK);
-    lv_obj_align(s_word, LV_ALIGN_TOP_MID, 0, 18);
+    lv_obj_align(s_word, LV_ALIGN_TOP_MID, 0, 86);
     s_gloss = ui_pixel_label(card, "", &font_cjk16, UI_INK);
-    lv_label_set_long_mode(s_gloss, LV_LABEL_LONG_WRAP);
-    lv_obj_set_width(s_gloss, 176);
     lv_obj_set_style_text_align(s_gloss, LV_TEXT_ALIGN_CENTER, 0);
-    lv_obj_align(s_gloss, LV_ALIGN_TOP_MID, 0, 56);
+    lv_obj_align(s_gloss, LV_ALIGN_TOP_MID, 0, 114);
 
     // 组内 10 词进度点
     for (int i = 0; i < WORDS_GROUP_SIZE; i++) {
         lv_obj_t *dot = lv_obj_create(s_scr);
         lv_obj_remove_flag(dot, LV_OBJ_FLAG_SCROLLABLE);
-        lv_obj_set_pos(dot, 42 + i * 16, 216);
+        lv_obj_set_pos(dot, 42 + i * 16, 234);
         lv_obj_set_size(dot, 12, 8);
         lv_obj_set_style_radius(dot, 0, 0);
         lv_obj_set_style_pad_all(dot, 0, 0);
@@ -242,7 +243,7 @@ void demo_words_enter(void)
     lv_obj_t *hint = ui_pixel_label(s_scr,
         "上下切词  OK 看释义", &font_cjk16, UI_INK);
     lv_obj_align(hint, LV_ALIGN_BOTTOM_MID, 0, -7);
-    s_bear = bear_create(s_scr, 100, 242);
+    s_bear = bear_create(s_scr, 100, 250);
 
     // "小组完成"覆盖层(默认隐藏)
     s_done_panel = ui_pixel_panel_create(s_scr, 35, 116, 170, 84, UI_ORANGE);
@@ -267,7 +268,7 @@ void demo_words_exit(void)
     if (s_scr) {
         lv_obj_delete(s_scr);
         s_scr = s_bear = s_batt = NULL;
-        s_group_label = s_total_label = s_word = s_gloss = NULL;
+        s_group_label = s_total_label = s_img = s_word = s_gloss = NULL;
         s_done_panel = s_done_title = s_done_sub = NULL;
         for (int i = 0; i < WORDS_GROUP_SIZE; i++) s_dots[i] = NULL;
     }
