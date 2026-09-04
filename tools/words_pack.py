@@ -141,8 +141,11 @@ def emit_images(entries):
     with tempfile.TemporaryDirectory() as tmp:
         for i, png in enumerate(paths):
             sym = img_symbol(i)
+            # RGB565 是本机屏幕原生格式,渲染路径最稳;透明背景直接合成到
+            # 卡片纸色(UI_PAPER)上,避免依赖索引色 alpha 混合。
             subprocess.run(
-                [sys.executable, str(IMG_TOOL), "--ofmt", "C", "--cf", "I8",
+                [sys.executable, str(IMG_TOOL), "--ofmt", "C", "--cf", "RGB565",
+                 "--rgb565dither", "--background", "0xF4F4EA",
                  "--compress", "NONE", "--name", sym, "-o", tmp, str(png)],
                 check=True, capture_output=True)
             text = (pathlib.Path(tmp) / f"{sym}.c").read_text(encoding="utf-8")
