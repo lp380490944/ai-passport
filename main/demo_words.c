@@ -40,7 +40,7 @@ static lv_obj_t   *s_scr, *s_bear, *s_batt;
 static lv_obj_t   *s_group_label, *s_total_label;
 static lv_obj_t   *s_img, *s_word, *s_gloss;
 static lv_obj_t   *s_dots[WORDS_GROUP_SIZE];
-static lv_obj_t   *s_done_panel, *s_done_title, *s_done_sub;
+static lv_obj_t   *s_done_wrap, *s_done_title, *s_done_sub;
 static lv_timer_t *s_timer;
 
 // ---- 持久化 ----
@@ -103,8 +103,8 @@ static void refresh(void)
         lv_obj_set_style_bg_color(s_dots[i], lv_color_hex(c), 0);
     }
 
-    if (s_done_overlay) lv_obj_remove_flag(s_done_panel, LV_OBJ_FLAG_HIDDEN);
-    else                lv_obj_add_flag(s_done_panel, LV_OBJ_FLAG_HIDDEN);
+    if (s_done_overlay) lv_obj_remove_flag(s_done_wrap, LV_OBJ_FLAG_HIDDEN);
+    else                lv_obj_add_flag(s_done_wrap, LV_OBJ_FLAG_HIDDEN);
 }
 
 static void show_done(bool all_done)
@@ -246,13 +246,22 @@ void demo_words_enter(void)
     s_bear = bear_create(s_scr, 100, 250);
 
     // "小组完成"覆盖层(默认隐藏)
-    s_done_panel = ui_pixel_panel_create(s_scr, 35, 116, 170, 84, UI_ORANGE);
-    lv_obj_set_style_pad_all(s_done_panel, 0, 0);
-    s_done_title = ui_pixel_label(s_done_panel, "", &font_cjk16, UI_INK);
+    // 面板阴影是画在父对象上的独立块,必须连阴影一起包进透明容器,
+    // 隐藏容器才能把阴影一并藏掉(否则屏幕中间会留一块黑)。
+    s_done_wrap = lv_obj_create(s_scr);
+    lv_obj_remove_flag(s_done_wrap, LV_OBJ_FLAG_SCROLLABLE);
+    lv_obj_set_pos(s_done_wrap, 35, 116);
+    lv_obj_set_size(s_done_wrap, 176, 91);
+    lv_obj_set_style_bg_opa(s_done_wrap, LV_OPA_TRANSP, 0);
+    lv_obj_set_style_border_width(s_done_wrap, 0, 0);
+    lv_obj_set_style_pad_all(s_done_wrap, 0, 0);
+    lv_obj_t *done_panel = ui_pixel_panel_create(s_done_wrap, 0, 0, 170, 84, UI_ORANGE);
+    lv_obj_set_style_pad_all(done_panel, 0, 0);
+    s_done_title = ui_pixel_label(done_panel, "", &font_cjk16, UI_INK);
     lv_obj_align(s_done_title, LV_ALIGN_TOP_MID, 0, 16);
-    s_done_sub = ui_pixel_label(s_done_panel, "", &font_cjk16, UI_INK);
+    s_done_sub = ui_pixel_label(done_panel, "", &font_cjk16, UI_INK);
     lv_obj_align(s_done_sub, LV_ALIGN_TOP_MID, 0, 44);
-    lv_obj_add_flag(s_done_panel, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_add_flag(s_done_wrap, LV_OBJ_FLAG_HIDDEN);
 
     refresh();
     tick(NULL);                                    // 立即显示电量,不等 1 秒
@@ -269,7 +278,7 @@ void demo_words_exit(void)
         lv_obj_delete(s_scr);
         s_scr = s_bear = s_batt = NULL;
         s_group_label = s_total_label = s_img = s_word = s_gloss = NULL;
-        s_done_panel = s_done_title = s_done_sub = NULL;
+        s_done_wrap = s_done_title = s_done_sub = NULL;
         for (int i = 0; i < WORDS_GROUP_SIZE; i++) s_dots[i] = NULL;
     }
 }
